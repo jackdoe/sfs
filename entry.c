@@ -49,16 +49,28 @@ static int entry_set_data(struct entry *e) {
 		MYSQL_STMT  *stmt;
 		bzero(bind,sizeof(bind));
 		stmt = mysql_stmt_init(conn);
-		mysql_stmt_prepare(stmt, query, strlen(query));
+		if (!stmt) {
+			_E("no mem for stmt");
+			clean_exit(EXIT_FAILURE);
+		}
+		if (mysql_stmt_prepare(stmt, query, strlen(query))) {
+			_E("failed to prepare stmt: %s",mysql_stmt_error(stmt));
+			clean_exit(EXIT_FAILURE);
+		}
 		bind[0].buffer_type = MYSQL_TYPE_BLOB;
 		bind[0].buffer = e->data;
 		bind[0].buffer_length = e->len;
 		bind[0].is_null = 0;
 		bind[0].length = (unsigned long *) &e->len;
 		mysql_stmt_bind_param(stmt, bind);
-		mysql_stmt_execute(stmt);
-		mysql_stmt_affected_rows(stmt);
-		mysql_stmt_close(stmt);
+		if (mysql_stmt_execute(stmt)) {
+			_E("failed to execute stmt: %s",mysql_stmt_error(stmt));
+			clean_exit(EXIT_FAILURE);
+		}
+		if(mysql_stmt_close(stmt)) {
+			_E("failed to close stmt: %s",mysql_stmt_error(stmt));
+			clean_exit(EXIT_FAILURE);
+		}
 		return 0;
 	} else {
 		QUERY("UPDATE `entries_%s` SET data = NULL,mtime = %u WHERE id = %llu",identifier,t,e->id);
