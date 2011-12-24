@@ -2,8 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-//#include <errno.h>
-//#include <fcntl.h>
 #include <my_global.h>
 #include <mysql.h>
 
@@ -15,8 +13,10 @@ static inline void entry_list_append(struct entry_list *el, struct entry *e);
 
 static struct entry *entry_new(void) {
 	struct entry *d = malloc(sizeof(*d));
-	if (!d)
+	if (!d) {
+		_E("no mem for %d bytes",(int) sizeof(*d));
 		clean_exit(EXIT_FAILURE);
+	}
 	bzero(d,sizeof(*d));
 	return d;
 }
@@ -123,6 +123,10 @@ struct entry *entry_get(const char *path,size_t size, off_t offset,size_t min_si
 			d->id = atoi(row[0]);
 			d->obj_type = atoi(row[2]);
 			d->path = strdup(path);
+			if (!d->path) {
+				_E("failed to allocate mem for path");
+				clean_exit(EXIT_FAILURE);
+			}
 			d->uid = atoi(row[3]);
 			d->gid = atoi(row[4]);
 			d->mode = atoi(row[5]);
