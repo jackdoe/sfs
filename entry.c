@@ -137,7 +137,8 @@ struct entry *entry_get(const char *path,size_t size, off_t offset,size_t min_si
 					if (d->data) {
 						COPY(row[1],d->data,d->len);					
 					} else {
-						_D("not enough mem to allocate: %llu",max(d->len,min_size));
+						_E("not enough mem to allocate: %llu",max(d->len,min_size));
+						clean_exit(EXIT_FAILURE);
 						/* XXX: 
 						 * dont really know what to do here 
 						 * return NULL? or d->len = 0? or just exit?
@@ -167,7 +168,7 @@ void create_root_if_needed(void) {
 	if (!e) {
 		e = entry_create("/",NULL);
 		if (!e) {
-			_D("fail to create root directory");
+			_E("fail to create root directory");
 			clean_exit(EXIT_FAILURE);
 		}		
 		e->obj_type = OBJ_DIR;
@@ -248,20 +249,22 @@ void entry_list_destroy(struct entry_list *el) {
 uint64_t sql_do(char *query) {
 	_D("query: %s",query);
 	if (mysql_query(conn, query) < 0) {
-		_D("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+		_E("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
 	}
 	return mysql_affected_rows(conn);
 }
 
 char *sql_sanitize(const char *s) {
-	int len = strlen(s);
+	unsigned int len = strlen(s);
 	/* 
 	 * You must allocate the to buffer to be at least length*2+1 bytes long
 	 * http://dev.mysql.com/doc/refman/4.1/en/mysql-real-escape-string.html
 	 */ 
 	char *to = malloc((len * 2) + 1); 
-	if (!to)
+	if (!to) {
+		_E("no mem for %u bytes",(len * 2) + 1);
 		clean_exit(EXIT_FAILURE);
+	}
 	mysql_real_escape_string(conn,to,s,len);
 	return to;
 }
@@ -282,11 +285,11 @@ uint64_t sql_count(char *query) {
 void sql_connect(void) {
 	conn = mysql_init(NULL);
 	if (conn == NULL) {
-		_D("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+		_E("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
 		exit(EXIT_FAILURE);
 	}
 	if (mysql_real_connect(conn, _MYSQL_HOST, _MYSQL_USER,_MYSQL_PASS, _MYSQL_DATABASE, _MYSQL_PORT, NULL, 0) == NULL) {
-		_D("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
+		_E("Error %u: %s\n", mysql_errno(conn), mysql_error(conn));
 		exit(EXIT_FAILURE);
 	}
 	identifier = _MYSQL_USER;

@@ -15,7 +15,9 @@
 
 #define COPY(a,b,len) bcopy(a,b,len)
 #define QUERY(arg...) snprintf(query,sizeof(query),##arg)
-#ifdef DEBUG
+#define _E(fmt,arg...) printf("ERR: %s()\t" fmt " [%s:%d]\n",__func__,##arg,__FILE__,__LINE__)
+
+#if DEBUG >= 1
 #	define _D(fmt,arg...) printf("%s()\t" fmt " [%s:%d]\n",__func__,##arg,__FILE__,__LINE__)
 #else
 #	define _D(fmt,arg...)
