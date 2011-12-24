@@ -1,0 +1,22 @@
+*WARNING: experimental stage, work in progress, DOES NOT USE SSL, DO NOT USE IN PRODUCTION*
+
+very basic mysql backed fuse file system.
+
+requirements:
+	fuse, mysql, pthreads, c compiler
+
+install:
+	download from https://github.com/jackdoe/sfs
+	$EDOTOR common.h #put proper mysql settings into common.h
+	make #DEBUG=1 if you want debug output
+	./sfs /mnt/fuse
+
+info:
+	by default the tables are named after mysql user
+	for exmple: `entries_username`
+	table is automaticaly created, root directory is automaticaly inserted
+	
+idea:
+	i made this as proof of concept to be used in diskless linux based routers,
+	where i can edit their config files remotely - for example /etc or /usr/local/etc,
+	with simple web based application.
