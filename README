@@ -20,3 +20,22 @@ idea:
 	i made this as proof of concept to be used in diskless linux based routers,
 	where i can edit their config files remotely - for example /etc or /usr/local/etc,
 	with simple web based application.
+
+supported calls:
+	sfs_oper.getattr	= sfs_getattr;
+	sfs_oper.readdir	= sfs_readdir;
+	sfs_oper.open		= sfs_open;
+	sfs_oper.write		= sfs_write;
+	sfs_oper.truncate	= sfs_truncate;
+	sfs_oper.read		= sfs_read;
+	sfs_oper.create		= sfs_create;
+	sfs_oper.unlink		= sfs_delete;
+	sfs_oper.chmod		= sfs_chmod;
+	sfs_oper.chown		= sfs_chown;
+	sfs_oper.statfs		= sfs_statfs;
+	sfs_oper.mkdir		= sfs_mkdir;
+	sfs_oper.readlink	= sfs_readlink;
+	sfs_oper.symlink	= sfs_symlink;
+	sfs_oper.rename		= sfs_rename;
+	sfs_oper.rmdir		= sfs_rmdir;
+	sfs_oper.utimens	= sfs_utimens;

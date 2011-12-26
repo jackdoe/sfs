@@ -14,8 +14,11 @@
 #define IS_ROOT(path)	(strcmp("/",path) == 0)
 
 #define COPY(a,b,len) bcopy(a,b,len)
-#define QUERY(arg...) snprintf(query,sizeof(query),##arg)
 #define _E(fmt,arg...) printf("ERR: %s()\t" fmt " [%s:%d]\n",__func__,##arg,__FILE__,__LINE__)
+#define SAYX(rc,fmt,arg...) do {					\
+	_E(fmt,##arg);							\
+	clean_exit(rc);							\
+} while(0);
 
 #if DEBUG >= 1
 #	define _D(fmt,arg...) printf("%s()\t" fmt " [%s:%d]\n",__func__,##arg,__FILE__,__LINE__)
