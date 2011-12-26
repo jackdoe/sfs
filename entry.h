@@ -1,10 +1,14 @@
-
 #ifndef ENTRY_H
 #define ENTRY_H
-#include <sys/syslimits.h>
 #include <my_global.h>
 #include <mysql.h>
-#define MAX_Q_SIZE 1024
+#define MAX_Q_SIZE 	1024
+#define MAX_PATH_SIZE	MAX_Q_SIZE/8
+#define OBJ_ANY 	0
+#define OBJ_FILE 	1
+#define OBJ_DIR 	2
+#define OBJ_LINK 	3
+
 struct connection {
 	MYSQL *conn;
 	pthread_mutex_t lock;
@@ -46,12 +50,12 @@ class Entry {
 		void create_table_if_needed(void);
 		uint64_t SQL_Execute(void);
 		uint64_t SQL_Count(void);
-		char *SQL_Escape(const char *string);
+		char *SQL_Escape(const char *string, unsigned int max_len);
 	private:
 		uint64_t _id;
 		struct ustat _u;
 		struct stime _t;
-		char _path[PATH_MAX];
+		char _path[MAX_PATH_SIZE];
 		char _query[MAX_Q_SIZE];
 		uint64_t _obj_type;
 		uint64_t _data_len;
@@ -61,12 +65,7 @@ class Entry {
 		uint64_t atoi(char *str);
 		void load(const char *p);
 };
-#define OBJ_ANY 	0
-#define OBJ_FILE 	1
-#define OBJ_DIR 	2
-#define OBJ_LINK 	3
 
 void SQL_INIT(void);
 void SQL_DESTROY(void);
-
 #endif

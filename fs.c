@@ -141,7 +141,6 @@ int main(int argc, char *argv[])
 	sfs_oper.rename		= sfs_rename;
 	sfs_oper.rmdir		= sfs_rmdir;
 	sfs_oper.utimens	= sfs_utimens;
-
 	return fuse_main(argc, argv, &sfs_oper, NULL);
 }
 

@@ -5,7 +5,7 @@
 #include "common.h"
 #include "entry.h"
 #define Q(arg...) snprintf(_query,MAX_Q_SIZE,##arg)
-#define THIS_PATH(arg...) snprintf(_path,PATH_MAX,##arg)
+#define THIS_PATH(arg...) snprintf(_path,MAX_PATH_SIZE,##arg)
 
 char *identifier;
 struct connection GIANT;
@@ -18,13 +18,13 @@ static void *zalloc(uint64_t len) {
 }
 Entry::Entry(const char *path_unescaped) {
 	_c = &GIANT;
+	_validated = false;
 	pthread_mutex_lock(&_c->lock);
 	if (path_unescaped) {
-		char *escape = this->SQL_Escape(path_unescaped);	
+		char *escape = this->SQL_Escape(path_unescaped,MAX_PATH_SIZE);	
 		this->load(escape);
 		free(escape);
 	}
-
 }
 Entry::~Entry(void) {
 	pthread_mutex_unlock(&_c->lock);
@@ -90,7 +90,7 @@ bool Entry::valid(void) {
 int Entry::create(const char *extra_unescaped) {
 	unsigned int tim = (unsigned int) time(NULL);
 	if (extra_unescaped) {
-		char *escape = this->SQL_Escape(extra_unescaped);	
+		char *escape = this->SQL_Escape(extra_unescaped,MAX_PATH_SIZE);	
 		Q("INSERT INTO `entries_%s` (path,data,btime,ctime,mtime,atime) VALUES('%s','%s',%u,%u,%u,%u)",identifier,_path,escape,tim,tim,tim,tim);
 		free(escape);
 	} else
@@ -120,7 +120,7 @@ int Entry::rename(const char *to_unescaped) {
 		return -ENOENT;
 	if (!to_unescaped)
 		return -EIO;
-	char *to = this->SQL_Escape(to_unescaped);
+	char *to = this->SQL_Escape(to_unescaped,MAX_PATH_SIZE);
 	Q("UPDATE `entries_%s` SET path = REPLACE(path,'%s','%s') WHERE path LIKE '%s%%'",identifier,_path,to,_path);
 	free(to);
 	this->SQL_Execute();
@@ -320,8 +320,8 @@ void Entry::create_table_if_needed(void) {
 }
 
 
-char *Entry::SQL_Escape(const char *string) {
-	unsigned int len = strlen(string);
+char *Entry::SQL_Escape(const char *string,unsigned int max_len) {
+	unsigned int len = min(strlen(string),max_len);
 	/* 
 	 * You must allocate the to buffer to be at least length*2+1 bytes long
 	 * http://dev.mysql.com/doc/refman/4.1/en/mysql-real-escape-string.html
