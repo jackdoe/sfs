@@ -1,27 +1,50 @@
 *WARNING: experimental stage, work in progress, DOES NOT USE SSL, DO NOT USE IN PRODUCTION*
 
 very basic mysql backed fuse file system.
+0: abstract
+	fuse based, mysql backed file system
 
-requirements:
+1. requirements:
 	fuse, mysql, pthreads, c compiler
 
-install:
+2. install:
 	download from https://github.com/jackdoe/sfs
 	$EDOTOR common.h #put proper mysql settings into common.h
 	make #DEBUG=1 if you want debug output
 	./sfs /mnt/fuse
 
-info:
-	by default the tables are named after mysql user
-	for exmple: `entries_username`
-	table is automaticaly created, root directory is automaticaly inserted
+3. info:
+	this is the table that is used:
 	
-idea:
+	Q("CREATE TABLE IF NOT EXISTS `entries_%s` (	\
+	`id` bigint(20) NOT NULL AUTO_INCREMENT,	\
+	`path` varchar(255) NOT NULL,			\
+	`data` longblob,				\
+	`obj_type` int(11) NOT NULL,			\
+	`uid` bigint(20) NOT NULL,			\
+	`gid` bigint(20) NOT NULL,			\
+	`mode` bigint(20) NOT NULL,			\
+	`atime` bigint(20) NOT NULL,			\
+	`mtime` bigint(20) NOT NULL,			\
+	`ctime` bigint(20) NOT NULL,			\
+	`btime` bigint(20) NOT NULL,			\
+	PRIMARY KEY (`id`),				\
+	UNIQUE KEY `path` (`path`))",identifier);
+	
+	identifier is a copy of the mysql username (for example root)
+	and the table will be entries_root
+	table is automaticaly created at start, root directory is auto inserted as well
+	
+	mysql user needs to select/update/delete/insert and maybe create if you dont have
+	the table created.
+
+	
+4. idea:
 	i made this as proof of concept to be used in diskless linux based routers,
 	where i can edit their config files remotely - for example /etc or /usr/local/etc,
 	with simple web based application.
 
-supported calls:
+5. supported calls:
 	sfs_oper.getattr	= sfs_getattr;
 	sfs_oper.readdir	= sfs_readdir;
 	sfs_oper.open		= sfs_open;
@@ -39,3 +62,10 @@ supported calls:
 	sfs_oper.rename		= sfs_rename;
 	sfs_oper.rmdir		= sfs_rmdir;
 	sfs_oper.utimens	= sfs_utimens;
+
+6. limitations:
+	MAX_PATH_SIZE: 256 chars
+	max data size: mysql's longblob 4gb
+	read/write is extreamly slow on big files
+	currently there is no locking
+	

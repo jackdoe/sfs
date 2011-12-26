@@ -2,7 +2,7 @@
 #define ENTRY_H
 #include <my_global.h>
 #include <mysql.h>
-#define MAX_Q_SIZE 	1024
+#define MAX_Q_SIZE 	2048
 #define MAX_PATH_SIZE	MAX_Q_SIZE/8
 #define OBJ_ANY 	0
 #define OBJ_FILE 	1
