@@ -73,6 +73,7 @@ very basic mysql backed fuse file system.
 	
 	$ mkdir ~/mysql_backed_fs
 	$ ./sfs ~/mysql_backed_fs/
+	$ cd ~/mysql_backed_fs
 	mysql_backed_fs $ mkdir test_directory
 	mysql_backed_fs $ cd test_directory/
 	test_directory $ ls -la
