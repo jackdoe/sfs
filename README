@@ -80,9 +80,10 @@ very basic mysql backed fuse file system.
 	total 0
 	drwxr-xr-x  1 jack  staff  0 Dec 27 09:24 .
 	drwxr-xr-x  1 jack  staff  0 Dec 24 15:35 ..
-	jack-2:test_directory $ touch empty_file
-	jack-2:test_directory $ echo 'not empty anymore' > empty_file 
-	jack-2:test_directory $ cat empty_file 
+	test_directory $ touch empty_file
+	test_directory $ cat empty_file	
+	test_directory $ echo 'not empty anymore' >> empty_file
+	test_directory $ cat empty_file 
 	not empty anymore
 	test_directory $ cd ..
 	mysql_backed_fs $ ln -s test_directory/empty_file link
@@ -99,4 +100,47 @@ very basic mysql backed fuse file system.
 	MD5 (blob.dd) = 7d84c26f72aa5440c778014b1c9d23fe
 	$ cp blob.dd mysql_backed_fs/ && md5 mysql_backed_fs/blob.dd
 	MD5 (mysql_backed_fs/blob.dd) = 7d84c26f72aa5440c778014b1c9d23fe
-	$
+	$ cd mysql_backed_fs
+
+as you can see write is very very slow
+
+	mysql_backed_fs $ dd if=/dev/zero of=./speed.blob.dd bs=1m count=5 
+	5+0 records in
+	5+0 records out
+	5242880 bytes transferred in 14.620257 secs (358604 bytes/sec)
+
+reading is fine on not very large files tho, because it uses SUBSTRING() and 
+gets only requested offset+size from the mysql
+
+	mysql_backed_fs $ time cat speed.blob.dd > /dev/null
+	real	0m0.005s
+	user	0m0.001s
+	sys	0m0.004s
+	
+
+mysql does not have a way for partial updates on blob fields so
+there is download/modify (offset+size - usually 65k)/push the whole file and 
+the speed drops like a rock in water :)
+ 
+	mysql_backed_fs$ dd if=/dev/zero of=./speed.blob.dd bs=65k count=1
+	1+0 records in
+	1+0 records out
+	66560 bytes transferred in 0.004575 secs (14548589 bytes/sec)
+	mysql_backed_fs$ dd if=/dev/zero of=./speed.blob.dd bs=256k count=1
+	1+0 records in
+	1+0 records out
+	262144 bytes transferred in 0.015075 secs (17389082 bytes/sec)
+	mysql_backed_fs$ dd if=/dev/zero of=./speed.blob.dd bs=512k count=1
+	1+0 records in
+	1+0 records out
+	524288 bytes transferred in 0.046395 secs (11300513 bytes/sec)
+	mysql_backed_fs$ dd if=/dev/zero of=./speed.blob.dd bs=1024k count=1
+	1+0 records in
+	1+0 records out
+	1048576 bytes transferred in 0.301245 secs (3480808 bytes/sec)
+	mysql_backed_fs$ dd if=/dev/zero of=./speed.blob.dd bs=2048k count=1
+	1+0 records in
+	1+0 records out
+	2097152 bytes transferred in 1.876782 secs (1117419 bytes/sec)
+
+but for small files it is fine
