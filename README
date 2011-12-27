@@ -68,4 +68,34 @@ very basic mysql backed fuse file system.
 	max data size: mysql's longblob 4gb
 	read/write is extreamly slow on big files
 	currently there is no locking
+
+7. example usage:
 	
+	$ mkdir ~/mysql_backed_fs
+	$ ./sfs ~/mysql_backed_fs/
+	mysql_backed_fs $ mkdir test_directory
+	mysql_backed_fs $ cd test_directory/
+	test_directory $ ls -la
+	total 0
+	drwxr-xr-x  1 jack  staff  0 Dec 27 09:24 .
+	drwxr-xr-x  1 jack  staff  0 Dec 24 15:35 ..
+	jack-2:test_directory $ touch empty_file
+	jack-2:test_directory $ echo 'not empty anymore' > empty_file 
+	jack-2:test_directory $ cat empty_file 
+	not empty anymore
+	test_directory $ cd ..
+	mysql_backed_fs $ ln -s test_directory/empty_file link
+	mysql_backed_fs $ cat link
+	not empty anymore
+	mysql_backed_fs $ ln -s test_directory link2
+	mysql_backed_fs $ cat link2/empty_file 
+	not empty anymore
+	mysql_backed_fs $ cd ..
+	$ dd if=/dev/random of=blob.dd bs=1m count=1 && md5 blob.dd 
+	1+0 records in
+	1+0 records out
+	1048576 bytes transferred in 0.080215 secs (13072073 bytes/sec)
+	MD5 (blob.dd) = 7d84c26f72aa5440c778014b1c9d23fe
+	$ cp blob.dd mysql_backed_fs/ && md5 mysql_backed_fs/blob.dd
+	MD5 (mysql_backed_fs/blob.dd) = 7d84c26f72aa5440c778014b1c9d23fe
+	$
